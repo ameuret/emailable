@@ -32,7 +32,7 @@ Or install it yourself as:
 Emailable.true?('destination@example.com', 'sender@yourname.xyz')
 ```
 
-or
+or (pedantic mode that raises an exception)
 
 ```ruby
 begin
@@ -63,6 +63,8 @@ Most smtp servers will have quotas in place. This class does not try to limit th
 
 ## TODO
 
+ * Optimize response parsing to get rid of safety delays
+ * Offer bulk check mode to verify multiple addresses in one call
  * Support SSL and TLS
  * Specify server port (currently uses 25)
 

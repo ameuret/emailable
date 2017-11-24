@@ -4,11 +4,22 @@ require 'net/telnet'
 require 'pp'
 
 module Emailable
+
+  class Refused < Exception
+  end
+  
   def self.true?(receiver, sender)
     c = Emailable::Checker.new sender
     r = c.emailable? receiver
     c.close
     r
+  end
+
+  def self.true!(receiver, sender)
+    c = Emailable::Checker.new sender
+    r = c.emailable? receiver
+    c.close
+    raise Emailable::Refused unless r
   end
 
   class Checker
@@ -37,11 +48,14 @@ module Emailable
       end
     end
 
+    def emailable!(receiver)
+      raise Emailable::Refused unless emailable? receiver
+    end
+    
     def check(receiver, exchName)
       @sender.match EMAIL_REGEXP
       domain = $2      
       begin
-#        exchName = 'gmail-smtp-in.l.google.com'
         @smtp = Net::Telnet::new("Host" => exchName, "Port" => 25, "Telnetmode" => false)
         @smtp.waitfor('Match'=> /220/) {|r| STDERR.puts "<#{r.to_s.dump}>" if @debug}
         request("EHLO #{domain}", /250 /)
@@ -65,7 +79,7 @@ module Emailable
       @smtp.puts cmd
       @smtp.waitfor(
         'Match'=> expected,
-        'Timeout'=> 0.5,
+        'Timeout'=> 1,
       ) {|r| STDERR.puts "<#{r.to_s.dump}>" if @debug}
     end
   end
